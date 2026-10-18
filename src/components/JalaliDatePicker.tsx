@@ -7,6 +7,7 @@ import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import { toPersianDigits } from '../utils/digits'
 import {
   PERSIAN_WEEKDAYS,
@@ -37,6 +38,7 @@ export function JalaliDatePicker({
 }: JalaliDatePickerProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [viewDate, setViewDate] = useState<Date>(() => fromGregorianISO(value) || new Date())
+  const isMobile = useMediaQuery('(max-width:600px)')
 
   const open = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -83,7 +85,7 @@ export function JalaliDatePicker({
         <Popper
           open={Boolean(anchorEl)}
           anchorEl={anchorEl}
-          placement="bottom-start"
+          placement={isMobile ? 'top-start' : 'bottom-start'}
           disablePortal={false}
           modifiers={[
             { name: 'flip', enabled: true, options: { padding: 8 } },
