@@ -1,75 +1,38 @@
-# React + TypeScript + Vite
+# سامانه مدیریت رزرو
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+داشبورد فارسی و راست‌چین برای ثبت و پیگیری رزروها؛ ساخته‌شده با React و TypeScript.
 
-Currently, two official plugins are available:
+## فناوری‌ها
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19، TypeScript و Vite
+- Material UI 6 و Emotion با پشتیبانی RTL
+- `date-fns-jalali` برای نمایش تاریخ جلالی
+- `pnpm` برای مدیریت وابستگی‌ها
 
-## React Compiler
+## نصب و اجرا
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+pnpm install
+pnpm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+دستورهای بررسی:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+pnpm run build
+pnpm run lint
 ```
+
+## قابلیت‌ها
+
+- داشبورد آماری، فهرست واکنش‌گرا، جستجو، فیلتر و مرتب‌سازی رزروها
+- ثبت رزرو با اعتبارسنجی نام، شماره موبایل ایرانی، تاریخ و ساعت
+- جلوگیری از ثبت شماره تکراری؛ نام تکراری فقط هشدار است
+- مشاهده جزئیات و تغییر وضعیت با رعایت گذارهای مجاز
+- رابط فارسی و RTL؛ تاریخ جلالی و ساعت ۲۴ساعته با ارقام فارسی
+
+## داده و تاریخ
+
+اطلاعات نمونه در `src/data/mockReservations.ts` قرار دارد و وضعیت رزروها در حافظه React نگهداری می‌شود. تاریخ‌ها در داده به شکل Gregorian ISO (`YYYY-MM-DD`) ذخیره و هنگام نمایش به جلالی تبدیل می‌شوند. تغییرات پس از بارگذاری مجدد صفحه حفظ نمی‌شوند.
+
+این نسخه بک‌اند، پایگاه داده یا احراز هویت ندارد. برای استفاده چندکاربره باید اطلاعات مشتری و رزرو در سرور پایدار ذخیره، شماره نرمال‌شده در پایگاه داده یکتا و اعتبارسنجی سمت سرور نیز اعمال شود.
