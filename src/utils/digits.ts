@@ -8,6 +8,7 @@ for (let i = 0; i < 10; i++) {
   digitLookup[ARABIC_INDIC_DIGITS[i]] = String(i)
 }
 
+
 export function normalizeDigits(value: string): string {
   if (!value) {
     return ''

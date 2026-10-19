@@ -23,21 +23,21 @@ import { ReservationForm } from './ReservationForm';
 import { ReservationTable } from './ReservationTable';
 import { SummaryStats } from './SummaryStats';
 
-function createReservationId(): string {
-  const webCrypto = globalThis.crypto;
+// function createReservationId(): string {
+//   const webCrypto = globalThis.crypto;
 
-  if (typeof webCrypto.randomUUID === 'function') {
-    return `res-${webCrypto.randomUUID()}`;
-  }
+//   if (typeof webCrypto.randomUUID === 'function') {
+//     return `res-${webCrypto.randomUUID()}`;
+//   }
 
-  const bytes = webCrypto.getRandomValues(new Uint8Array(16));
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
-  const uuid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+//   const bytes = webCrypto.getRandomValues(new Uint8Array(16));
+//   bytes[6] = (bytes[6] & 0x0f) | 0x40;
+//   bytes[8] = (bytes[8] & 0x3f) | 0x80;
+//   const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+//   const uuid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 
-  return `res-${uuid}`;
-}
+//   return `res-${uuid}`;
+// }
 
 export function Dashboard() {
   const [reservations, setReservations] = useState<Reservation[]>(mockReservations);
@@ -47,7 +47,7 @@ export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ReservationStatusFilter>('all');
   const [sortOption, setSortOption] = useState<ReservationSortOption>('newest');
-  const successMessageTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const successMessageTimeout = useRef<number | null>(null);
 
   const isMobile = useMediaQuery('(max-width:900px)');
 
@@ -67,12 +67,11 @@ export function Dashboard() {
     }, 3000);
   };
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    return () => {
       clearSuccessMessageTimeout();
-    },
-    []
-  );
+    };
+  }, []);
 
   const filtered = sortReservations(
     searchReservations(filterByStatus(reservations, statusFilter), searchQuery),
@@ -97,7 +96,7 @@ export function Dashboard() {
 
     const newReservation: Reservation = {
       ...data,
-      id: createReservationId(),
+      id: Math.random().toString(),
     };
     setReservations((prev) => [newReservation, ...prev]);
     showSuccessMessage('رزرو با موفقیت ثبت شد');

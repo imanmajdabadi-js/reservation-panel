@@ -38,14 +38,14 @@ export function filterByStatus(
 
 export function searchReservations(
   reservations: readonly Reservation[],
-  query: string
+  keyword: string
 ): Reservation[] {
-  const trimmed = query.trim();
+  const trimmed = keyword.trim();
   if (!trimmed) {
     return reservations.slice();
   }
 
-  const normalizedQuery = normalizeDigits(trimmed).toLowerCase();
+  const normalizedKeyword = normalizeDigits(trimmed).toLowerCase();
 
   return reservations.filter((reservation) => {
     const candidates = [
@@ -56,7 +56,7 @@ export function searchReservations(
     ];
 
     return candidates.some((candidate) =>
-      normalizeDigits(candidate).toLowerCase().includes(normalizedQuery)
+      normalizeDigits(candidate).toLowerCase().includes(normalizedKeyword)
     );
   });
 }
@@ -65,7 +65,7 @@ export function sortReservations(
   reservations: readonly Reservation[],
   sort: ReservationSortOption
 ): Reservation[] {
-  const sorted = reservations.slice();
+  const sorted = [...reservations];
 
   if (sort === 'name') {
     return sorted.sort((a, b) => a.customerName.localeCompare(b.customerName, 'fa'));
