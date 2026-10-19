@@ -10,6 +10,16 @@ export interface ParsedTime {
   minutes: number
 }
 
+export function normalizeTimeInput(time: string): string {
+  const normalized = normalizeDigits(time).trim()
+
+  if (/^\d{4}$/.test(normalized)) {
+    return `${normalized.slice(0, 2)}:${normalized.slice(2)}`
+  }
+
+  return normalized
+}
+
 export function parseDate(date: string): Date | null {
   if (!DATE_PATTERN.test(date)) {
     return null

@@ -12,7 +12,7 @@ import FormControl from '@mui/material/FormControl'
 import Stack from '@mui/material/Stack'
 import Alert from '@mui/material/Alert'
 import type { SelectChangeEvent } from '@mui/material/Select'
-import { parseDate, parseTime } from '../utils/datetime'
+import { normalizeTimeInput, parseDate, parseTime } from '../utils/datetime'
 import { validateIranianMobile } from '../utils/phone'
 import type { Reservation, ReservationService } from '../types/reservation'
 import { SERVICE_LABELS } from '../constants/labels'
@@ -141,7 +141,7 @@ export function ReservationForm({
       next.date = 'تاریخ نامعتبر است'
     }
 
-    if (!parseTime(form.time)) {
+    if (!parseTime(normalizeTimeInput(form.time))) {
       next.time = 'ساعت نامعتبر است'
     }
 
@@ -167,7 +167,7 @@ export function ReservationForm({
       phone: phoneResult.normalized,
       service: form.service,
       date: form.date,
-      time: normalizeDigits(form.time).trim(),
+      time: normalizeTimeInput(form.time),
       status: 'pending',
       description: form.description.trim() || undefined,
     }
@@ -260,11 +260,19 @@ export function ReservationForm({
             type="text"
             value={toPersianDigits(form.time)}
             onChange={handleTimeChange}
+            onBlur={() =>
+              setForm((prev) => ({ ...prev, time: normalizeTimeInput(prev.time) }))
+            }
             error={Boolean(errors.time)}
             helperText={errors.time}
             size="small"
-            placeholder="۱۴:۳۰"
-            inputProps={{ inputMode: 'numeric', dir: 'rtl', style: { textAlign: 'right' } }}
+            placeholder="۱۲۲۰"
+            inputProps={{
+              inputMode: 'numeric',
+              dir: 'ltr',
+              maxLength: 5,
+              style: { textAlign: 'left' },
+            }}
           />
 
           <TextField
