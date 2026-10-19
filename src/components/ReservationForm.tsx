@@ -26,7 +26,6 @@ interface FormState {
   phone: string
   service: ReservationService
   date: string
-  time: string
   description: string
 }
 
@@ -56,11 +55,14 @@ export function ReservationForm({
     phone: '',
     service: 'consultation',
     date: toGregorianISO(new Date()),
-    time: '',
     description: '',
   })
+  const [timeHours, setTimeHours] = useState('')
+  const [timeMinutes, setTimeMinutes] = useState('')
   const [errors, setErrors] = useState<FieldErrors>({})
   const submitLock = useRef(false)
+  const minutesInputRef = useRef<HTMLInputElement>(null)
+  const hoursInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (open) {
@@ -74,9 +76,10 @@ export function ReservationForm({
       phone: '',
       service: 'consultation',
       date: toGregorianISO(new Date()),
-      time: '',
       description: '',
     })
+    setTimeHours('')
+    setTimeMinutes('')
     setErrors({})
   }
 
@@ -98,9 +101,62 @@ export function ReservationForm({
     setErrors((prev) => ({ ...prev, phone: undefined }))
   }
 
-  const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, time: normalizeDigits(event.target.value) }))
+  const getTimeValue = () => {
+    if (!timeHours || !timeMinutes) {
+      return ''
+    }
+
+    return normalizeTimeInput(
+      `${timeHours.padStart(2, '0')}:${timeMinutes.padStart(2, '0')}`
+    )
+  }
+
+  const handleTimeChange = (part: 'hours' | 'minutes') => (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = normalizeDigits(event.target.value).replace(/\D/g, '').slice(0, 2)
+
+    if (part === 'hours') {
+      setTimeHours(value)
+      if (value.length === 2) {
+        minutesInputRef.current?.focus()
+      }
+    } else {
+      setTimeMinutes(value)
+    }
+
     setErrors((prev) => ({ ...prev, time: undefined }))
+  }
+
+  const handleTimePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = normalizeDigits(event.clipboardData.getData('text').trim())
+    const digits = pasted.replace(/\D/g, '')
+    const hasSeparator = pasted.includes(':')
+    const isCompactTime = /^\d{4}$/.test(pasted)
+
+    if ((hasSeparator && /^\d{1,2}:\d{1,2}$/.test(pasted)) || isCompactTime) {
+      event.preventDefault()
+      setTimeHours(digits.slice(0, 2))
+      setTimeMinutes(digits.slice(2, 4))
+      setErrors((prev) => ({ ...prev, time: undefined }))
+    }
+  }
+
+  const handleTimeKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      event.currentTarget === minutesInputRef.current &&
+      event.key === 'Backspace' &&
+      !event.currentTarget.value &&
+      event.currentTarget.selectionStart === 0 &&
+      event.currentTarget.selectionEnd === 0
+    ) {
+      event.preventDefault()
+      hoursInputRef.current?.focus()
+      hoursInputRef.current?.setSelectionRange(
+        hoursInputRef.current.value.length,
+        hoursInputRef.current.value.length
+      )
+    }
   }
 
   const handleSelectChange = (event: SelectChangeEvent) => {
@@ -141,7 +197,7 @@ export function ReservationForm({
       next.date = 'تاریخ نامعتبر است'
     }
 
-    if (!parseTime(normalizeTimeInput(form.time))) {
+    if (!parseTime(getTimeValue())) {
       next.time = 'ساعت نامعتبر است'
     }
 
@@ -167,7 +223,7 @@ export function ReservationForm({
       phone: phoneResult.normalized,
       service: form.service,
       date: form.date,
-      time: normalizeTimeInput(form.time),
+      time: getTimeValue(),
       status: 'pending',
       description: form.description.trim() || undefined,
     }
@@ -255,25 +311,52 @@ export function ReservationForm({
             helperText={errors.date}
           />
 
-          <TextField
-            label="ساعت"
-            type="text"
-            value={toPersianDigits(form.time)}
-            onChange={handleTimeChange}
-            onBlur={() =>
-              setForm((prev) => ({ ...prev, time: normalizeTimeInput(prev.time) }))
-            }
-            error={Boolean(errors.time)}
-            helperText={errors.time}
-            size="small"
-            placeholder="۱۲۲۰"
-            inputProps={{
-              inputMode: 'numeric',
-              dir: 'ltr',
-              maxLength: 5,
-              style: { textAlign: 'left' },
-            }}
-          />
+          <Stack direction="row" alignItems="flex-start" gap={1} dir="ltr">
+            <TextField
+              label="ساعت"
+              type="text"
+              value={toPersianDigits(timeHours)}
+              onChange={handleTimeChange('hours')}
+              onPaste={handleTimePaste}
+              onKeyDown={handleTimeKeyDown}
+              error={Boolean(errors.time)}
+              size="small"
+              placeholder="۱۲"
+              inputRef={hoursInputRef}
+              inputProps={{
+                'aria-label': 'ساعت',
+                inputMode: 'numeric',
+                dir: 'ltr',
+                maxLength: 2,
+                style: { textAlign: 'center' },
+              }}
+              sx={{ flex: 1 }}
+            />
+            <span aria-hidden="true" style={{ paddingTop: 10 }}>
+              :
+            </span>
+            <TextField
+              label="دقیقه"
+              type="text"
+              value={toPersianDigits(timeMinutes)}
+              onChange={handleTimeChange('minutes')}
+              onPaste={handleTimePaste}
+              onKeyDown={handleTimeKeyDown}
+              error={Boolean(errors.time)}
+              helperText={errors.time}
+              size="small"
+              placeholder="۲۰"
+              inputRef={minutesInputRef}
+              inputProps={{
+                'aria-label': 'دقیقه',
+                inputMode: 'numeric',
+                dir: 'ltr',
+                maxLength: 2,
+                style: { textAlign: 'center' },
+              }}
+              sx={{ flex: 1 }}
+            />
+          </Stack>
 
           <TextField
             label="توضیحات (اختیاری)"
