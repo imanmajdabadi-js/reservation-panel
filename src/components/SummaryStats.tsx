@@ -4,20 +4,16 @@ import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import type { Reservation } from '../types/reservation'
 import { toPersianDigits } from '../utils/digits'
-
-function localToday(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
+import { toGregorianISO } from '../utils/jalaliDate'
 
 interface SummaryStatsProps {
   reservations: Reservation[]
 }
 
 export function SummaryStats({ reservations }: SummaryStatsProps) {
+  const today = toGregorianISO(new Date())
   const total = reservations.length
-  const todayCount = reservations.filter((r) => r.date === localToday()).length
+  const todayCount = reservations.filter((r) => r.date === today).length
   const confirmedCount = reservations.filter((r) => r.status === 'confirmed').length
   const cancelledCount = reservations.filter((r) => r.status === 'cancelled').length
 

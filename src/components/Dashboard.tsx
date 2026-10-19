@@ -4,7 +4,7 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { mockReservations } from '../data/mockReservations';
 import type { Reservation, ReservationSortOption, ReservationStatus } from '../types/reservation';
 import { validateIranianMobile } from '../utils/phone';
@@ -47,8 +47,32 @@ export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ReservationStatusFilter>('all');
   const [sortOption, setSortOption] = useState<ReservationSortOption>('newest');
+  const successMessageTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isMobile = useMediaQuery('(max-width:900px)');
+
+  const clearSuccessMessageTimeout = () => {
+    if (successMessageTimeout.current !== null) {
+      clearTimeout(successMessageTimeout.current);
+      successMessageTimeout.current = null;
+    }
+  };
+
+  const showSuccessMessage = (message: string) => {
+    clearSuccessMessageTimeout();
+    setSuccessMessage(message);
+    successMessageTimeout.current = setTimeout(() => {
+      setSuccessMessage('');
+      successMessageTimeout.current = null;
+    }, 3000);
+  };
+
+  useEffect(
+    () => () => {
+      clearSuccessMessageTimeout();
+    },
+    []
+  );
 
   const filtered = sortReservations(
     searchReservations(filterByStatus(reservations, statusFilter), searchQuery),
@@ -76,8 +100,7 @@ export function Dashboard() {
       id: createReservationId(),
     };
     setReservations((prev) => [newReservation, ...prev]);
-    setSuccessMessage('رزرو با موفقیت ثبت شد');
-    setTimeout(() => setSuccessMessage(''), 3000);
+    showSuccessMessage('رزرو با موفقیت ثبت شد');
     return null;
   };
 
@@ -91,8 +114,7 @@ export function Dashboard() {
     setDetailsReservation((current) =>
       current?.id === id ? { ...current, status: newStatus } : current
     );
-    setSuccessMessage('وضعیت رزرو با موفقیت تغییر کرد');
-    setTimeout(() => setSuccessMessage(''), 3000);
+    showSuccessMessage('وضعیت رزرو با موفقیت تغییر کرد');
   };
 
   return (
@@ -113,7 +135,10 @@ export function Dashboard() {
           severity="success"
           closeText="بستن"
           sx={{ mb: 2 }}
-          onClose={() => setSuccessMessage('')}
+          onClose={() => {
+            clearSuccessMessageTimeout();
+            setSuccessMessage('');
+          }}
         >
           {successMessage}
         </Alert>

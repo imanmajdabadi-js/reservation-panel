@@ -1,5 +1,6 @@
-﻿import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Box from '@mui/material/Box'
+import ButtonBase from '@mui/material/ButtonBase'
 import Popper from '@mui/material/Popper'
 import Paper from '@mui/material/Paper'
 import TextField from '@mui/material/TextField'
@@ -38,11 +39,17 @@ export function JalaliDatePicker({
 }: JalaliDatePickerProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [viewDate, setViewDate] = useState<Date>(() => fromGregorianISO(value) || new Date())
+  const inputRef = useRef<HTMLInputElement>(null)
+  const selectedDayButtonRef = useRef<HTMLButtonElement>(null)
   const isMobile = useMediaQuery('(max-width:600px)')
 
-  const open = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
+  const open = (anchor: HTMLElement, focusSelectedDay = false) => {
+    setAnchorEl(anchor)
     setViewDate(fromGregorianISO(value) || new Date())
+
+    if (focusSelectedDay) {
+      setTimeout(() => selectedDayButtonRef.current?.focus(), 0)
+    }
   }
 
   const close = () => setAnchorEl(null)
@@ -50,6 +57,7 @@ export function JalaliDatePicker({
   const handleDaySelect = (day: Date) => {
     onChange(toGregorianISO(day))
     close()
+    inputRef.current?.focus()
   }
 
   const handlePrevMonth = () => setViewDate((prev) => changeMonth(prev, -1))
@@ -68,14 +76,30 @@ export function JalaliDatePicker({
     }}>
       <Box sx={{ position: 'relative', width: '100%' }}>
         <TextField
+          inputRef={inputRef}
           label={label}
           value={selectedDate ? toJalaliDisplay(selectedDate) : ''}
-          onClick={open}
+          onClick={(event) => open(event.currentTarget)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
+              event.preventDefault()
+              open(event.currentTarget, true)
+            } else if (event.key === 'Escape' && anchorEl) {
+              event.preventDefault()
+              event.stopPropagation()
+              close()
+            }
+          }}
           error={error}
           helperText={helperText}
           size="small"
           InputLabelProps={{ shrink: true }}
           InputProps={{ readOnly: true }}
+          inputProps={{
+            'aria-haspopup': 'dialog',
+            'aria-expanded': Boolean(anchorEl),
+            'aria-controls': anchorEl ? 'jalali-date-picker-calendar' : undefined,
+          }}
           sx={{
             cursor: 'pointer',
             width: '100%',
@@ -85,11 +109,15 @@ export function JalaliDatePicker({
         <Popper
           open={Boolean(anchorEl)}
           anchorEl={anchorEl}
+          container={anchorEl?.closest('.MuiDialog-container') ?? undefined}
           placement={isMobile ? 'top-start' : 'bottom-start'}
-          disablePortal={false}
           modifiers={[
-            { name: 'flip', enabled: true, options: { padding: 8 } },
-            { name: 'preventOverflow', enabled: true, options: { padding: 8, escapeMargins: true } },
+            { name: 'flip', enabled: true, options: { boundary: 'viewport', padding: 8 } },
+            {
+              name: 'preventOverflow',
+              enabled: true,
+              options: { boundary: 'viewport', padding: 8, escapeMargins: true },
+            },
             { name: 'offset', options: { offset: [0, 4] } },
           ]}
           sx={{
@@ -97,6 +125,16 @@ export function JalaliDatePicker({
           }}
         >
           <Paper
+            id="jalali-date-picker-calendar"
+            role="dialog"
+            aria-label={`انتخاب ${label}`}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.stopPropagation()
+                close()
+                inputRef.current?.focus()
+              }
+            }}
             elevation={8}
             sx={{
               borderRadius: 2,
@@ -104,6 +142,7 @@ export function JalaliDatePicker({
               borderColor: 'divider',
               p: 1.5,
               width: 'min(320px, calc(100vw - 32px))',
+              boxSizing: 'border-box',
               minWidth: 0,
               maxHeight: '80vh',
               overflowY: 'auto',
@@ -165,9 +204,14 @@ export function JalaliDatePicker({
                   const selected = selectedDate ? isSameDay(day, selectedDate) : false
                   const isToday = isSameDay(day, today)
                   return (
-                    <Box
+                    <ButtonBase
                       key={dayIndex}
+                      ref={selected ? selectedDayButtonRef : undefined}
                       onClick={() => handleDaySelect(day)}
+                      type="button"
+                      aria-label={toJalaliDisplay(day)}
+                      aria-pressed={selected}
+                      aria-current={isToday ? 'date' : undefined}
                       sx={{
                         aspectRatio: '1',
                         display: 'flex',
@@ -191,19 +235,9 @@ export function JalaliDatePicker({
                           outlineOffset: '2px',
                         },
                       }}
-                      tabIndex={0}
-                      role="gridcell"
-                      aria-selected={selected}
-                      aria-label={toJalaliDisplay(day)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleDaySelect(day)
-                        }
-                      }}
                     >
                       {toPersianDigits(getDate(day))}
-                    </Box>
+                    </ButtonBase>
                   )
                 })}
               </Box>

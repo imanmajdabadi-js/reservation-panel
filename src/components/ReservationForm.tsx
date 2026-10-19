@@ -18,6 +18,7 @@ import type { Reservation, ReservationService } from '../types/reservation'
 import { SERVICE_LABELS } from '../constants/labels'
 import { normalizeCustomerName } from '../utils/reservation'
 import { normalizeDigits, toPersianDigits } from '../utils/digits'
+import { toGregorianISO } from '../utils/jalaliDate'
 import { JalaliDatePicker } from './JalaliDatePicker'
 
 interface FormState {
@@ -37,12 +38,6 @@ interface FieldErrors {
   time?: string
 }
 
-function todayGregorian(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
-
 export interface ReservationFormProps {
   open: boolean
   existingReservations: readonly Reservation[]
@@ -60,7 +55,7 @@ export function ReservationForm({
     customerName: '',
     phone: '',
     service: 'consultation',
-    date: todayGregorian(),
+    date: toGregorianISO(new Date()),
     time: '',
     description: '',
   })
@@ -78,7 +73,7 @@ export function ReservationForm({
       customerName: '',
       phone: '',
       service: 'consultation',
-      date: todayGregorian(),
+      date: toGregorianISO(new Date()),
       time: '',
       description: '',
     })

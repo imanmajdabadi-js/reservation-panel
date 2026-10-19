@@ -3,15 +3,22 @@ import type { Reservation, ReservationSortOption, ReservationStatus } from '../t
 import { toComparableTimestamp } from './datetime';
 import { normalizeDigits } from './digits';
 export type ReservationStatusFilter = 'all' | ReservationStatus;
+export type ReservationActionStatus = Exclude<ReservationStatus, 'pending'>;
 
-const ALLOWED_STATUS_TRANSITIONS: Record<ReservationStatus, readonly ReservationStatus[]> = {
+const ALLOWED_STATUS_TRANSITIONS: Record<ReservationStatus, readonly ReservationActionStatus[]> = {
   pending: ['confirmed', 'cancelled'],
   confirmed: ['cancelled'],
   cancelled: [],
 };
 
+export function getAllowedStatusTransitions(
+  status: ReservationStatus
+): readonly ReservationActionStatus[] {
+  return ALLOWED_STATUS_TRANSITIONS[status];
+}
+
 export function canTransitionStatus(current: ReservationStatus, next: ReservationStatus): boolean {
-  return ALLOWED_STATUS_TRANSITIONS[current].includes(next);
+  return getAllowedStatusTransitions(current).some((status) => status === next);
 }
 
 export function normalizeCustomerName(name: string): string {

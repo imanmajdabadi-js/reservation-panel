@@ -10,26 +10,25 @@ import { SERVICE_LABELS } from '../constants/labels';
 import type { Reservation, ReservationStatus } from '../types/reservation';
 import { formatDate, formatTime } from '../utils/datetime';
 import { toPersianDigits } from '../utils/digits';
+import { getAllowedStatusTransitions, type ReservationActionStatus } from '../utils/reservation';
 import { StatusBadge } from './StatusBadge';
 
 interface StatusAction {
-  target: ReservationStatus;
+  target: ReservationActionStatus;
   label: string;
   color: 'success' | 'error' | 'primary';
 }
 
+const STATUS_ACTIONS: Record<ReservationActionStatus, Omit<StatusAction, 'target'>> = {
+  confirmed: { label: 'تأیید رزرو', color: 'success' },
+  cancelled: { label: 'لغو کردن', color: 'error' },
+};
+
 function getActions(status: ReservationStatus): StatusAction[] {
-  switch (status) {
-    case 'pending':
-      return [
-        { target: 'confirmed', label: 'تأیید رزرو', color: 'success' },
-        { target: 'cancelled', label: 'لغو کردن', color: 'error' },
-      ];
-    case 'confirmed':
-      return [{ target: 'cancelled', label: 'لغو کردن', color: 'error' }];
-    case 'cancelled':
-      return [];
-  }
+  return getAllowedStatusTransitions(status).map((target) => ({
+    target,
+    ...STATUS_ACTIONS[target],
+  }));
 }
 
 interface ReservationDetailsProps {
@@ -145,7 +144,6 @@ export function ReservationDetails({
               color={action.color}
               onClick={() => onStatusChange(reservation.id, action.target)}
               sx={{
-                minHeight: 20,
                 whiteSpace: 'nowrap',
                 width: { xs: '100%', sm: 'auto' },
               }}
@@ -158,7 +156,6 @@ export function ReservationDetails({
             color="inherit"
             variant="outlined"
             sx={{
-              minHeight: 20,
               whiteSpace: 'nowrap',
               width: { xs: '100%', sm: 'auto' },
               borderColor: { xs: 'divider', sm: 'transparent' },
